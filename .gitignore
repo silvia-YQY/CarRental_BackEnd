@@ -1,0 +1,71 @@
+# .NET 编译输出目录
+bin/
+obj/
+
+# Visual Studio 生成的用户特定文件
+.vscode/
+.vs/
+.idea/
+*.csproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# 调试文件
+*.userprefs
+
+# 生成的代码覆盖率结果
+*.coverage
+*.coveragexml
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# DotCover
+*.dotCover
+
+# 项目特定的文件
+project.lock.json
+project.fragment.lock.json
+
+# NuGet
+*.nupkg
+# NuGet Symbol Packages
+*.snupkg
+# NuGet restore
+.nuget/
+packages/
+# NuGet v3's project.json files produces more ignorable files
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# Rider
+.idea/
+*.sln.iml

@@ -1,0 +1,45 @@
+@CarRentalPlatform_HostAddress = http://localhost:5012
+
+GET {{CarRentalPlatform_HostAddress}}/api/Rentals
+Accept: application/json
+
+###
+
+GET {{CarRentalPlatform_HostAddress}}/api/Rentals/1
+Accept: application/json
+
+###
+
+POST {{CarRentalPlatform_HostAddress}}/api/Rentals
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+
+{
+  "car_id": 1,
+  "user_id": 1,
+  "start_date": "2024-06-12T03:12:54.401Z",
+  "end_date": "2024-06-12T03:12:54.401Z",
+  "fee": 1090,
+  "status": 3
+}
+
+###
+
+PUT  {{CarRentalPlatform_HostAddress}}/api/Rentals/3
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+
+{
+  "id": 3,
+  "carId": 3,
+  "customerId": 1,
+  "startDate": "2024-06-12T03:12:54.401Z",
+  "endDate": "2024-06-12T03:12:54.401Z",
+  "fee": 9000,
+  "status": 3
+}
+
+###
+
+DELETE   {{CarRentalPlatform_HostAddress}}/api/Rentals/6
+
