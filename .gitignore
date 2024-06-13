@@ -12,6 +12,11 @@ obj/
 *.userosscache
 *.sln.docstates
 
+# Ignore appsettings files
+appsettings.json
+appsettings.*.json
+!appsettings.Development.json
+
 # 调试文件
 *.userprefs
 
