@@ -1,23 +1,13 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace CarRentalPlatform.Models
-
-
+namespace CarRentalPlatform.DTOs
 {
-
-  public class Rental
+  public class RentalCreateDto
   {
-    public int Id { get; set; }
     public int Car_Id { get; set; }
     public int User_Id { get; set; }
     public DateTime Start_Date { get; set; }
     public DateTime End_Date { get; set; }
     public decimal Fee { get; set; }
     public Status Status { get; set; }
-
-    public Car Car { get; set; }
-    public User User { get; set; }
-
   }
 
   public enum Status
@@ -27,6 +17,5 @@ namespace CarRentalPlatform.Models
     Cancel = 2,   // 取消
     Pending = 3   // 待处理
   }
-
 
 }

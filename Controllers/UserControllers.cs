@@ -1,9 +1,15 @@
 using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
-using Microsoft.AspNetCore.Mvc;
+using CarRentalPlatform.DTOs;
+
 using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Linq;
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace CarRentalPlatform.Controllers
 
@@ -19,16 +25,18 @@ namespace CarRentalPlatform.Controllers
       _context = context;
     }
 
-    [HttpGet]
-    public ActionResult<IEnumerable<User>> GetUsers()
+    [HttpGet("all")]
+    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
     {
-      return _context.Users.ToList();
+      // return _context.Users.ToList();
+      var users = await _context.Users.ToListAsync();
+      return Ok(users);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<User> GetUser(int id)
+    public async Task<ActionResult<User>> GetUser(int id)
     {
-      var user = _context.Users.Find(id);
+      var user = await _context.Users.FindAsync(id);
 
       if (user == null)
       {
@@ -39,16 +47,16 @@ namespace CarRentalPlatform.Controllers
     }
 
     [HttpPost]
-    public ActionResult<User> PostUser(User user)
+    public async Task<ActionResult<User>> PostUser(User user)
     {
       _context.Users.Add(user);
-      _context.SaveChanges();
+      await _context.SaveChangesAsync();
 
       return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
     }
 
     [HttpPut("{id}")]
-    public IActionResult PutUser(int id, User user)
+    public async Task<IActionResult> PutUser(int id, User user)
     {
       if (id != user.Id)
       {
@@ -56,22 +64,37 @@ namespace CarRentalPlatform.Controllers
       }
 
       _context.Entry(user).State = EntityState.Modified;
-      _context.SaveChanges();
+
+      try
+      {
+        await _context.SaveChangesAsync();
+      }
+      catch (DbUpdateConcurrencyException)
+      {
+        if (!_context.Users.Any(e => e.Id == id))
+        {
+          return NotFound();
+        }
+        else
+        {
+          throw;
+        }
+      }
 
       return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteUser(int id)
+    public async Task<IActionResult> DeleteUser(int id)
     {
-      var user = _context.Users.Find(id);
+      var user = await _context.Users.FindAsync(id);
       if (user == null)
       {
         return NotFound();
       }
 
       _context.Users.Remove(user);
-      _context.SaveChanges();
+      await _context.SaveChangesAsync();
 
       return NoContent();
     }

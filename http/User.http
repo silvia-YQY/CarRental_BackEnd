@@ -17,7 +17,7 @@ Accept-Language: en-US,en;q=0.5
   {
     "name": "uuu",
     "password": "99900",
-    "user_type": false,
+    "isAdmin": false,
     "email": "134@ewr.com"
   }
 
@@ -31,7 +31,7 @@ Accept-Language: en-US,en;q=0.5
     "id": 3,
     "name": "yyy",
     "password": "99900",
-    "user_type": false,
+    "isAdmin": false,
     "email": "xxx@234.com"
   }
 

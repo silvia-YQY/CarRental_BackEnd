@@ -12,4 +12,6 @@ public class Car
   public bool Available_Now { get; set; }
   public string Url { get; set; }
   public decimal Price_Per_Day { get; set; }
+
+  public ICollection<Rental> Rentals { get; set; }
 }
