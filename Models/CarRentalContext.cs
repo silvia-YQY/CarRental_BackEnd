@@ -20,15 +20,15 @@ namespace CarRentalPlatform.Models
       modelBuilder.Entity<Rental>().ToTable("rentals");
       modelBuilder.Entity<User>().ToTable("users");
 
-      modelBuilder.Entity<Car>()
-          .HasMany(c => c.Rentals)
-          .WithOne(r => r.Car)
-          .HasForeignKey(r => r.Car_Id);
+      modelBuilder.Entity<Rental>()
+          .HasOne(r => r.Car)         // 一个 Rental 拥有一个 Car
+          .WithMany()                 // 一个 Car 可能被多个 Rental 引用
+          .HasForeignKey(r => r.Car_Id);  // Rental 表中的 Car_Id 外键
 
-      modelBuilder.Entity<User>()
-          .HasMany(u => u.Rentals)
-          .WithOne(r => r.User)
-          .HasForeignKey(r => r.User_Id);
+      modelBuilder.Entity<Rental>()
+          .HasOne(r => r.User)        // 一个 Rental 拥有一个 User
+          .WithMany()                 // 一个 User 可能拥有多个 Rental
+          .HasForeignKey(r => r.User_Id); // Rental 表中的 User_Id 外键
 
       base.OnModelCreating(modelBuilder);
     }

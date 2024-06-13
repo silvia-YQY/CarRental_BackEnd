@@ -19,7 +19,7 @@ namespace CarRentalPlatform.Controllers
       _context = context;
     }
 
-    [HttpGet]
+    [HttpGet("all")]
     public ActionResult<IEnumerable<Car>> GetCars()
     {
       return _context.Cars.ToList();

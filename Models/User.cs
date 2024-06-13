@@ -10,6 +10,4 @@ public class User
   public bool isAdmin { get; set; }
   public string Email { get; set; }
 
-  public ICollection<Rental> Rentals { get; set; }
-
 }

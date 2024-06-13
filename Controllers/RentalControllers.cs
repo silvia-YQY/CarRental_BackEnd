@@ -19,14 +19,16 @@ namespace CarRentalPlatform.Controllers
       _context = context;
     }
 
-    [HttpGet]
-    public ActionResult<IEnumerable<Rental>> GetUsers()
+    [HttpGet("all")]
+    public ActionResult<IEnumerable<Rental>> GetRentals()
     {
-      return _context.Rentals.ToList();
+      return _context.Rentals.Include(r => r.Car)   // 包含关联的车辆信息
+                         .Include(r => r.User)  // 包含关联的用户信息
+                         .ToList();
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Rental> GetUser(int id)
+    public ActionResult<Rental> GetRental(int id)
     {
       var rental = _context.Rentals.Find(id);
 
@@ -44,7 +46,7 @@ namespace CarRentalPlatform.Controllers
       _context.Rentals.Add(rental);
       _context.SaveChanges();
 
-      return CreatedAtAction(nameof(GetUser), new { id = rental.Id }, rental);
+      return CreatedAtAction(nameof(GetRental), new { id = rental.Id }, rental);
     }
 
     [HttpPut("{id}")]

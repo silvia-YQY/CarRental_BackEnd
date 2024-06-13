@@ -28,8 +28,9 @@ namespace CarRentalPlatform.Controllers
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<User>>> GetUsers()
     {
-      // return _context.Users.ToList();
-      var users = await _context.Users.ToListAsync();
+      // .Select(u => new User { Id = u.Id, Username = u.Username, Email = u.Email, isAdmin = u.isAdmin })  // controll the paramer
+      //.AsNoTracking()  // not track result
+      var users = await _context.Users.AsNoTracking().ToListAsync();
       return Ok(users);
     }
 
