@@ -1,5 +1,4 @@
 // Services/RentalService.cs
-using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +7,13 @@ namespace CarRentalPlatform.Services
   public class RentalService : IRentalService
   {
     private readonly CarRentalContext _context;
+    private readonly ILogger<RentalService> _logger; // 添加 ILogger 字段
 
-    public RentalService(CarRentalContext context)
+    public RentalService(CarRentalContext context, ILogger<RentalService> logger)
     {
       _context = context;
+      _logger = logger;
+
     }
 
     public async Task<IEnumerable<Rental>> GetAllRentalsAsync()
@@ -34,38 +36,24 @@ namespace CarRentalPlatform.Services
       return rental;
     }
 
-    public async Task<Rental?> CreateRentalAsync(RentalCreateDto rentalDto)
+    public async Task<Rental?> CreateRentalAsync(Rental rental)
     {
       using (var transaction = _context.Database.BeginTransaction())
       {
         try
         {
           // 查找现有的Car和User
-          var car = await _context.Cars.FindAsync(rentalDto.CarId);
-          var user = await _context.Users.FindAsync(rentalDto.UserId);
+          var car = await _context.Cars.FindAsync(rental.CarId);
+          var user = await _context.Users.FindAsync(rental.UserId);
 
           if (car == null || user == null)
           {
             throw new KeyNotFoundException($"Car or User not found");
           }
 
-
-          var rental = new Rental
-          {
-            CarId = rentalDto.CarId,
-            UserId = rentalDto.UserId,
-            StartDate = rentalDto.StartDate,
-            EndDate = rentalDto.EndDate,
-            Fee = rentalDto.Fee,
-            Status = rentalDto.Status,
-            Car = car,  // 设置关联的Car实体
-            User = user // 设置关联的User实体
-
-          };
           _context.Rentals.Add(rental);
           await _context.SaveChangesAsync();
           Console.WriteLine($"CreateRentalAsync==={rental.Id}");
-          // 2. 其他相关操作
 
           transaction.Commit(); // 提交事务
           return rental;
@@ -81,33 +69,31 @@ namespace CarRentalPlatform.Services
       }
     }
 
-    public async Task UpdateRentalAsync(RentalCreateDto rentalDto)
+    public async Task UpdateRentalAsync(Rental rental)
     {
-      var rental = await _context.Rentals.FindAsync(rentalDto.Id);
-      if (rental == null)
-      {
-        throw new KeyNotFoundException($"Rental with ID {rentalDto.Id} not found.");
-      }
 
-      rental.CarId = rentalDto.CarId;
-      rental.UserId = rentalDto.UserId;
-      rental.StartDate = rentalDto.StartDate;
-      rental.EndDate = rentalDto.EndDate;
-      rental.Fee = rentalDto.Fee;
-      rental.Status = rentalDto.Status;
-
-      _context.Entry(rental).State = EntityState.Modified;
+      // _context.Entry(rental).State = EntityState.Modified;
+      // Update existingRental using DbContext Update method
+      // _context.Update(rental);
       await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteRentalAsync(int id)
+    public async Task<bool> DeleteRentalAsync(int id)
     {
       var rental = await _context.Rentals.FindAsync(id);
+
       if (rental != null)
       {
         _context.Rentals.Remove(rental);
         await _context.SaveChangesAsync();
+        return true;
       }
+      else
+      {
+        return false;
+      }
+
+
     }
   }
 }

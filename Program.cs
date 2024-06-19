@@ -30,7 +30,8 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 });
 
-
+// Add services to the container.
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 // Add services to the container.
 builder.Services.AddControllers();

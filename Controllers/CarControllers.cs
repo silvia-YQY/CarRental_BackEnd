@@ -1,3 +1,5 @@
+using AutoMapper;
+using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,17 +12,20 @@ namespace CarRentalPlatform.Controllers
   public class CarsController : ControllerBase
   {
     private readonly ICarService _carService;
+    private readonly IMapper _mapper;
 
-    public CarsController(ICarService carService)
+    public CarsController(ICarService carService, IMapper mapper)
     {
       _carService = carService;
+      _mapper = mapper;
     }
 
     [HttpGet("all")]
-    public async Task<ActionResult<IEnumerable<Car>>> GetCars()
+    public async Task<ActionResult<List<Car>>> GetCars()
     {
       var cars = await _carService.GetAllCarsAsync();
-      return Ok(cars);
+      var carDtos = _mapper.Map<List<CarDto>>(cars);
+      return Ok(carDtos);
     }
 
     [HttpGet("{id}")]
@@ -32,8 +37,9 @@ namespace CarRentalPlatform.Controllers
       {
         return NotFound();
       }
+      CarDto carDto = _mapper.Map<CarDto>(car);
 
-      return Ok(car);
+      return Ok(carDto);
     }
 
     [HttpPost]
@@ -42,8 +48,9 @@ namespace CarRentalPlatform.Controllers
     public async Task<ActionResult<Car>> PostCar(Car car)
     {
       var createdCar = await _carService.CreateCarAsync(car);
-      Console.WriteLine($"PostCar==={createdCar.Id}");
-      return CreatedAtAction(nameof(GetCar), new { id = createdCar.Id }, createdCar);
+      CarDto carDto = _mapper.Map<CarDto>(createdCar);
+
+      return CreatedAtAction(nameof(GetCar), new { id = carDto.Id }, carDto);
     }
 
     [HttpPut("{id}")]

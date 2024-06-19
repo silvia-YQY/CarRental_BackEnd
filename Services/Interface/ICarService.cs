@@ -6,7 +6,7 @@ namespace CarRentalPlatform.Services
 {
   public interface ICarService
   {
-    Task<IEnumerable<Car>> GetAllCarsAsync();
+    Task<List<Car>> GetAllCarsAsync();
     Task<Car> GetCarByIdAsync(int id);
     Task<Car> CreateCarAsync(Car car);
     Task UpdateCarAsync(Car car);

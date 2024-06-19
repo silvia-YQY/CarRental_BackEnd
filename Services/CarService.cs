@@ -1,8 +1,6 @@
 // Services/CarService.cs
-using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
 
 namespace CarRentalPlatform.Services
 {
@@ -15,7 +13,7 @@ namespace CarRentalPlatform.Services
       _context = context;
     }
 
-    public async Task<IEnumerable<Car>> GetAllCarsAsync()
+    public async Task<List<Car>> GetAllCarsAsync()
     {
       return await _context.Cars.ToListAsync();
     }

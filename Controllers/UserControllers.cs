@@ -1,3 +1,5 @@
+using AutoMapper;
+using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
 
@@ -14,9 +16,13 @@ namespace CarRentalPlatform.Controllers
   {
     private readonly IUserService _context;
 
-    public UsersController(IUserService context)
+    private readonly IMapper _mapper;
+
+
+    public UsersController(IUserService context, IMapper mapper)
     {
       _context = context;
+      _mapper = mapper;
     }
 
     [HttpGet("all")]
@@ -25,7 +31,9 @@ namespace CarRentalPlatform.Controllers
       // .Select(u => new User { Id = u.Id, Username = u.Username, Email = u.Email, isAdmin = u.isAdmin })  // controll the paramer
       //.AsNoTracking()  // not track result
       var users = await _context.GetAllUsersAsync();
-      return Ok(users);
+      var userDtos = _mapper.Map<List<UserDto>>(users);
+
+      return Ok(userDtos);
     }
 
     [HttpGet("{id}")]
@@ -37,15 +45,18 @@ namespace CarRentalPlatform.Controllers
       {
         return NotFound();
       }
+      var userDto = _mapper.Map<UserDto>(user);
 
-      return Ok(user);
+      return Ok(userDto);
     }
 
     [HttpPost]
     public async Task<ActionResult<User>> PostUser(User user)
     {
       var createdUser = await _context.CreateUserAsync(user);
-      return CreatedAtAction(nameof(GetUser), new { id = user.Id }, createdUser);
+      var createdUserDto = _mapper.Map<UserDto>(createdUser);
+
+      return CreatedAtAction(nameof(GetUser), new { id = user.Id }, createdUserDto);
     }
 
     [HttpPut("{id}")]

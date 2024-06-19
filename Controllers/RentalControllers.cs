@@ -1,5 +1,4 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using AutoMapper;
 using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
@@ -15,19 +14,27 @@ namespace CarRentalPlatform.Controllers
   public class RentalsController : ControllerBase
   {
     private readonly IRentalService _rentalService;
+    private readonly IMapper _mapper;
+    private readonly ICarService _carService;
+
+
     private readonly ILogger<RentalsController> _logger; // 添加 ILogger 字段
 
-    public RentalsController(IRentalService rentalService, ILogger<RentalsController> logger)
+    public RentalsController(IRentalService rentalService, IMapper mapper, ICarService carService, ILogger<RentalsController> logger)
     {
       _rentalService = rentalService;
       _logger = logger;
+      _mapper = mapper;
+      _carService = carService;
     }
 
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<Rental>>> GetRentals()
     {
       var rentals = await _rentalService.GetAllRentalsAsync();
-      return Ok(rentals);
+      var rentalsDtos = _mapper.Map<List<RentalCreateDto>>(rentals);
+
+      return Ok(rentalsDtos);
     }
 
     [HttpGet("{id}")]
@@ -39,28 +46,28 @@ namespace CarRentalPlatform.Controllers
       {
         return NotFound();
       }
+      var rentalDto = _mapper.Map<RentalCreateDto>(rental);
 
-      return Ok(rental);
+      return Ok(rentalDto);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Rental>> PostRental(RentalCreateDto rentalDto)
+    public async Task<ActionResult<string>> PostRental([FromBody] RentalCreateDto rentalDto)
     {
       try
       {
 
-
-        var createdRental = await _rentalService.CreateRentalAsync(rentalDto);
-
-        var options = new JsonSerializerOptions
-        {
-          ReferenceHandler = ReferenceHandler.Preserve,
-        };
-
-        var json = JsonSerializer.Serialize(createdRental, options);
+        // Map RentalCreateDto to Rental
+        var rental = _mapper.Map<Rental>(rentalDto);
 
 
-        return Content(json, "application/json");
+        var createdRental = await _rentalService.CreateRentalAsync(rental);
+
+        var createdRentalDto = _mapper.Map<RentalCreateDto>(createdRental);
+
+        return CreatedAtAction(nameof(GetRental), new { id = createdRental.Id }, createdRental);
+
+        // return Content(json, "application/json");
       }
       catch (DbUpdateException ex)
       {
@@ -79,13 +86,49 @@ namespace CarRentalPlatform.Controllers
     [HttpPut("{id}")]
     public async Task<IActionResult> PutRental(int id, RentalCreateDto rentalDto)
     {
-      if (id != rentalDto.Id)
+      try
       {
-        return BadRequest();
-      }
+        var existingRental = await _rentalService.GetRentalByIdAsync(rentalDto.Id);
+        if (existingRental == null)
+        {
+          throw new KeyNotFoundException($"Rental with ID {rentalDto.Id} not found.");
+        }
 
-      await _rentalService.UpdateRentalAsync(rentalDto);
-      return NoContent();
+        if (id != rentalDto.Id)
+        {
+          _logger.LogError("Failed to update rental, Id mismatch");
+          return BadRequest("Id mismatch");
+        }
+
+        // Check if the CarId exists in the database
+        var existingCar = await _carService.GetCarByIdAsync(rentalDto.CarId);
+        if (existingCar == null)
+        {
+          _logger.LogError($"Car with Id {rentalDto.CarId} does not exist");
+          return BadRequest($"Car with Id {rentalDto.CarId} does not exist");
+        }
+        // Use AutoMapper to map rentalDto properties to existingRental
+        _mapper.Map(rentalDto, existingRental);
+
+
+        await _rentalService.UpdateRentalAsync(existingRental);
+
+        var updatedRentalDto = _mapper.Map<RentalCreateDto>(rentalDto);
+
+        return Ok(updatedRentalDto);
+      }
+      catch (DbUpdateException ex)
+      {
+        // Handle database update exception
+        _logger.LogError(ex, "Failed to update rental");
+        return StatusCode(StatusCodes.Status500InternalServerError, "Failed to update rental" + ex);
+      }
+      catch (Exception ex)
+      {
+        // Handle other exceptions
+        _logger.LogError(ex, "An unexpected error occurred");
+        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred" + ex);
+      }
 
     }
 
@@ -93,8 +136,19 @@ namespace CarRentalPlatform.Controllers
     public async Task<IActionResult> DeleteRental(int id)
     {
 
-      await _rentalService.DeleteRentalAsync(id);
-      return NoContent();
+      var existingRental = await _rentalService.GetRentalByIdAsync(id);
+      if (existingRental != null)
+      {
+        await _rentalService.DeleteRentalAsync(id);
+        return NoContent();
+      }
+      else
+      {
+        _logger.LogError("Failed to delete rental, Id mismatch");
+        return BadRequest("Id mismatch");
+
+
+      }
     }
 
   }

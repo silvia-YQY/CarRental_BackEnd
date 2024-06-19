@@ -1,28 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using CarRentalPlatform.Enums;
 
-
 namespace CarRentalPlatform.DTOs
 {
-  public class CarDto
-  {
-    public int Id { get; set; }
-    public required string Make { get; set; }
-    public required string Model { get; set; }
-    public int Year { get; set; }
-    public int Mileage { get; set; }
-    public bool AvailableNow { get; set; }
-    public string Url { get; set; }
-    public decimal PricePerDay { get; set; }
-  }
 
-  public class UserDto
-  {
-    public int Id { get; set; }
-    public required string Username { get; set; }
-    public required string Email { get; set; }
-    public bool IsAdmin { get; set; }
-  }
   public class RentalCreateDto
   {
     public int Id { get; set; }
@@ -32,13 +13,19 @@ namespace CarRentalPlatform.DTOs
 
     [Required(ErrorMessage = "UserId is required")]
     public int UserId { get; set; }
+
+    [Required(ErrorMessage = "StartDate is required")]
     public DateTime StartDate { get; set; }
+
+    [Required(ErrorMessage = "StartDate is required")]
     public DateTime EndDate { get; set; }
+
+    [Required(ErrorMessage = "Fee is required")]
     public decimal Fee { get; set; }
     public Status Status { get; set; }
 
-    public required CarDto Car { get; set; }
-    public required UserDto User { get; set; }
+    // public required CarDto Car { get; set; }
+    // public required UserDto User { get; set; }
   }
 
 }
