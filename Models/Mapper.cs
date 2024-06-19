@@ -6,7 +6,10 @@ public class MappingProfile : Profile
 {
   public MappingProfile()
   {
-    CreateMap<Car, CarDto>();
+    CreateMap<CarDto, Car>()
+           .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+    CreateMap<Car, CarDto>()
+           .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
     CreateMap<User, UserDto>();
     CreateMap<RentalCreateDto, Rental>()

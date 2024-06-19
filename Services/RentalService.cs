@@ -71,7 +71,7 @@ namespace CarRentalPlatform.Services
           throw new Exception("The current vehicle is occupied at the current time");
         }
 
-        // 费用计算（示例）
+        // 费用计算
         var fee = CalculateRentalFee(rental, car);
 
         if (fee != rental.Fee)
@@ -109,6 +109,24 @@ namespace CarRentalPlatform.Services
       {
         throw new Exception("The current vehicle is occupied at the current time");
       }
+      // 查找现有的Car和User
+      var car = await _context.Cars.FindAsync(rental.CarId);
+      var user = await _context.Users.FindAsync(rental.UserId);
+
+      if (car == null || user == null)
+      {
+        throw new KeyNotFoundException($"Car or User not found");
+      }
+
+      // 费用计算
+      var fee = CalculateRentalFee(rental, car);
+
+      if (fee != rental.Fee)
+      {
+        throw new Exception($"The current amount should be{fee}");
+
+      }
+
 
       await _context.SaveChangesAsync();
       return rental;

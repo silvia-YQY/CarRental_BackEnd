@@ -9,7 +9,6 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -26,10 +25,16 @@ builder.Services.AddCors(options =>
         });
 });
 
+
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    // 不使用 ReferenceHandler.Preserve，以避免生成 $id 和 $values 字段
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
+    // 可选：配置其他序列化选项
+    options.JsonSerializerOptions.PropertyNamingPolicy = null; // 保持原始的属性命名
+    options.JsonSerializerOptions.WriteIndented = true; // 格式化输出的 JSON
 });
 
 // Add services to the container.
@@ -38,15 +43,7 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<CarRentalContext>(options =>
    {
-
-       if (isDevelopment)
-       {
-           options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-       }
-       else
-       {
-           options.UseSqlServer(connectionString);
-       }
+       options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
    }
 );
 
@@ -113,7 +110,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
     options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
 });
-
 
 
 

@@ -5,7 +5,7 @@ Accept: application/json
 
 ###
 
-GET {{CarRentalPlatform_HostAddress}}/api/Rentals/5
+GET {{CarRentalPlatform_HostAddress}}/api/Rentals/2
 Accept: application/json
 
 ###
@@ -14,28 +14,25 @@ POST {{CarRentalPlatform_HostAddress}}/api/Rentals
 Content-Type: application/json
 Accept-Language: en-US,en;q=0.5
 
+
 {
-  "carId": 2,
-  "userId": 1,
-  "startDate": "2024-07-11T03:12:54.401Z",
-  "endDate": "2024-07-15T03:12:54.401Z",
-  "fee": 180,
-  "status": 3
+  "carId": 3,
+  "userId": 1
 }
 
 ###
 
-PUT  {{CarRentalPlatform_HostAddress}}/api/Rentals/6
+PUT  {{CarRentalPlatform_HostAddress}}/api/Rentals/2
 Content-Type: application/json
 Accept-Language: en-US,en;q=0.5
 
 {
-  "id": 1,
-  "carId": 4,
-  "userId": 2,
+  "id": 2,
+  "carId": 1,
+  "userId": 1,
   "startDate": "2024-06-12T03:12:54.401Z",
-  "endDate": "2024-06-12T03:12:54.401Z",
-  "fee": 9000,
+  "endDate": "2024-06-18T03:12:54.401Z",
+  "fee": 360,
   "status": 3
 }
 
@@ -44,13 +41,13 @@ Accept-Language: en-US,en;q=0.5
 DELETE   {{CarRentalPlatform_HostAddress}}/api/Rentals/4
 
 ### 
-PUT   {{CarRentalPlatform_HostAddress}}/api/Rentals/status/9
+PUT   {{CarRentalPlatform_HostAddress}}/api/Rentals/status/2
 Content-Type: application/json
 Accept-Language: en-US,en;q=0.5
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiMTIzMzQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiI0MjMxNEAxMS5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTcxODg3MDQ1OSwiaXNzIjoiMjIySXNzdWVyIiwiYXVkIjoiMTExWW91ckF1ZGllbmNlIn0.O86H5iypSCQ5yDXA2jDCzfMtNzec7JF7ZH8-02nxAI4
 
 
 {
-  "status": 4
+  "status":0
 }
 

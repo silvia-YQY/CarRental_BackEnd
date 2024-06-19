@@ -42,7 +42,7 @@ namespace CarRentalPlatform.Controllers
 
       if (user == null)
       {
-        return NotFound();
+        return StatusCode(StatusCodes.Status500InternalServerError, $"user with Id {id} does not exist");
       }
       var userDto = _mapper.Map<UserDto>(user);
 
@@ -65,20 +65,26 @@ namespace CarRentalPlatform.Controllers
     {
       if (id != user.Id)
       {
-        return BadRequest();
+        return BadRequest("Id mismatch");
       }
 
       await _context.UpdateUserAsync(user);
 
-      return NoContent();
+      return Ok("Update successful");
     }
 
     [Authorize(Policy = "AdminPolicy")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
+      var User = await _context.GetUserByIdAsync(id);
+      if (User == null)
+      {
+        return StatusCode(StatusCodes.Status500InternalServerError, $"User with Id {id} does not exist");
+
+      }
       await _context.DeleteUserAsync(id);
-      return NoContent();
+      return Ok("Delete successful");
     }
 
   }

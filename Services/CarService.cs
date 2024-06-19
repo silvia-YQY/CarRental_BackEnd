@@ -18,13 +18,9 @@ namespace CarRentalPlatform.Services
       return await _context.Cars.ToListAsync();
     }
 
-    public async Task<Car> GetCarByIdAsync(int id)
+    public async Task<Car?> GetCarByIdAsync(int id)
     {
       var car = await _context.Cars.FindAsync(id);
-      if (car == null)
-      {
-        throw new KeyNotFoundException($"Car with ID {id} not found.");
-      }
       return car;
     }
 
@@ -36,9 +32,12 @@ namespace CarRentalPlatform.Services
       return car;
     }
 
-    public async Task UpdateCarAsync(Car car)
+    public async Task UpdateCarAsync(Car updatedCar, Car existingCar)
     {
-      _context.Entry(car).State = EntityState.Modified;
+      // _context.Entry(car).State = EntityState.Modified;
+      // await _context.SaveChangesAsync();
+
+      _context.Entry(existingCar).CurrentValues.SetValues(updatedCar);
       await _context.SaveChangesAsync();
     }
 

@@ -45,10 +45,9 @@ namespace CarRentalPlatform.Controllers
 
       if (rental == null)
       {
-        return NotFound();
+        return StatusCode(StatusCodes.Status500InternalServerError, $"Car with Id {id} does not exist");
       }
       var rentalDto = _mapper.Map<RentalCreateDto>(rental);
-
       return Ok(rentalDto);
     }
 
@@ -91,7 +90,8 @@ namespace CarRentalPlatform.Controllers
         var existingRental = await _rentalService.GetRentalByIdAsync(rentalDto.Id);
         if (existingRental == null)
         {
-          throw new KeyNotFoundException($"Rental with ID {rentalDto.Id} not found.");
+
+          return StatusCode(StatusCodes.Status500InternalServerError, $"Rental with ID {rentalDto.Id} not found.");
         }
 
         if (id != rentalDto.Id)
@@ -105,7 +105,7 @@ namespace CarRentalPlatform.Controllers
         if (existingCar == null)
         {
           _logger.LogError($"Car with Id {rentalDto.CarId} does not exist");
-          return BadRequest($"Car with Id {rentalDto.CarId} does not exist");
+          return StatusCode(StatusCodes.Status500InternalServerError, $"Car with Id {rentalDto.CarId} does not exist");
         }
         // Use AutoMapper to map rentalDto properties to existingRental
         _mapper.Map(rentalDto, existingRental);
@@ -114,7 +114,7 @@ namespace CarRentalPlatform.Controllers
 
         var updatedRentalDto = _mapper.Map<RentalCreateDto>(rentalDto);
 
-        return Ok(updatedRentalDto);
+        return Ok("Update successful");
       }
       catch (DbUpdateException ex)
       {
@@ -139,14 +139,12 @@ namespace CarRentalPlatform.Controllers
       if (existingRental != null)
       {
         await _rentalService.DeleteRentalAsync(id);
-        return NoContent();
+        return Ok("Delete successful");
       }
       else
       {
         _logger.LogError("Failed to delete rental, Id mismatch");
         return BadRequest("Id mismatch");
-
-
       }
     }
 
@@ -170,7 +168,7 @@ namespace CarRentalPlatform.Controllers
         // 保存更改
         await _rentalService.UpdateRentalStatusAsync(rental);
 
-        return NoContent();
+        return Ok("Update successful");
       }
       catch (DbUpdateException ex)
       {

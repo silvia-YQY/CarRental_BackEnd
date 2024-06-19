@@ -50,7 +50,7 @@ namespace CarRentalPlatform.Controllers
       _context.Users.Add(user);
       await _context.SaveChangesAsync();
 
-      return Ok(new { message = $"{(userRegisterDto.isAdmin ? "Admintration" : "User")}registered successfully" });
+      return Ok(new { message = $"{(userRegisterDto.isAdmin ? "Admintration" : "User")} registered successfully" });
     }
 
     [HttpPost("login")]
@@ -79,7 +79,6 @@ namespace CarRentalPlatform.Controllers
       var jwtKey = _configuration["Jwt:Key"];
       var jwtIssuer = _configuration["Jwt:Issuer"];
       var jwtAudience = _configuration["Jwt:Audience"];
-      _logger.LogInformation("JWT Configuration - Issuer: {Issuer}, Audience: {Audience}, Key: {Key}", jwtIssuer, jwtAudience, jwtKey);
       if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
       {
         throw new InvalidOperationException("JWT configuration values cannot be null or empty.");

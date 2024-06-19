@@ -9,19 +9,20 @@ namespace CarRentalPlatform.DTOs
     public int Id { get; set; }
 
     [Required(ErrorMessage = "CarId is required")]
-    public int CarId { get; set; }
+    public required int CarId { get; set; }
 
     [Required(ErrorMessage = "UserId is required")]
-    public int UserId { get; set; }
+    public required int UserId { get; set; }
 
     [Required(ErrorMessage = "StartDate is required")]
-    public DateTime StartDate { get; set; }
+    public required DateTime StartDate { get; set; }
 
     [Required(ErrorMessage = "StartDate is required")]
-    public DateTime EndDate { get; set; }
+    public required DateTime EndDate { get; set; }
 
     [Required(ErrorMessage = "Fee is required")]
-    public decimal Fee { get; set; }
+    [Range(1, 10000, ErrorMessage = "Fee参数只能是大于1，小于10000")]
+    public required decimal Fee { get; set; }
     public Status Status { get; set; }
 
     // public required CarDto Car { get; set; }

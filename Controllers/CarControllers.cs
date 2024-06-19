@@ -4,6 +4,7 @@ using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace CarRentalPlatform.Controllers
 
@@ -15,19 +16,42 @@ namespace CarRentalPlatform.Controllers
     private readonly ICarService _carService;
     private readonly IMapper _mapper;
 
-    public CarsController(ICarService carService, IMapper mapper)
+    private readonly ILogger<CarsController> _logger;
+
+    public CarsController(ICarService carService, IMapper mapper, ILogger<CarsController> logger)
     {
       _carService = carService;
       _mapper = mapper;
+      _logger = logger;
+
     }
 
     [HttpGet("all")]
-    public async Task<ActionResult<List<Car>>> GetCars()
+    public async Task<ActionResult<List<CarDto>>> GetCars()
     {
-      var cars = await _carService.GetAllCarsAsync();
-      var carDtos = _mapper.Map<List<CarDto>>(cars);
-      return Ok(carDtos);
+      try
+      {
+        var cars = await _carService.GetAllCarsAsync();
+        var carDtos = _mapper.Map<List<CarDto>>(cars);
+
+        // var jsonSettings = new JsonSerializerSettings
+        // {
+        //   ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        // };
+
+        // var jsonResult = Json(carDtos, jsonSettings);
+        // return Ok(jsonResult);
+
+        return Ok(carDtos);
+      }
+      catch (Exception ex)
+      {
+        // 处理异常并记录日志
+        _logger.LogError(ex, "An unexpected error occurred while getting all cars.");
+        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+      }
     }
+
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Car>> GetCar(int id)
@@ -36,7 +60,7 @@ namespace CarRentalPlatform.Controllers
 
       if (car == null)
       {
-        return NotFound();
+        return StatusCode(StatusCodes.Status500InternalServerError, $"Car with Id {id} does not exist");
       }
       CarDto carDto = _mapper.Map<CarDto>(car);
 
@@ -59,21 +83,45 @@ namespace CarRentalPlatform.Controllers
     [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> PutCar(int id, Car car)
     {
-      if (id != car.Id)
+      try
       {
-        return BadRequest();
-      }
 
-      await _carService.UpdateCarAsync(car);
-      return NoContent();
+
+        var existingCar = await _carService.GetCarByIdAsync(id);
+
+        if (id != car.Id)
+        {
+          return BadRequest("Id mismatch");
+        }
+
+
+        if (existingCar == null)
+        {
+          return StatusCode(StatusCodes.Status500InternalServerError, $"Car with Id {id} does not exist");
+        }
+
+
+        await _carService.UpdateCarAsync(car, existingCar);
+        return Ok("Update successful");
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred" + ex);
+      }
     }
 
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> DeleteCar(int id)
     {
+      var car = await _carService.GetCarByIdAsync(id);
+      if (car == null)
+      {
+        return StatusCode(StatusCodes.Status500InternalServerError, $"Car with Id {id} does not exist");
+
+      }
       await _carService.DeleteCarAsync(id);
-      return NoContent();
+      return Ok("Delete successful");
     }
 
   }
