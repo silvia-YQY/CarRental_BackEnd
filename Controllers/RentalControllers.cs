@@ -29,11 +29,18 @@ namespace CarRentalPlatform.Controllers
       _carService = carService;
     }
 
+    // public async Task<ActionResult<IEnumerable<Rental>>> GetRentals()
+    // {
+    //   var rentals = await _rentalService.GetAllRentalsAsync();
+    //   var rentalsDtos = _mapper.Map<List<RentalCreateDto>>(rentals);
+
+    //   return Ok(rentalsDtos);
+    // }
     [HttpGet("all")]
-    public async Task<ActionResult<IEnumerable<Rental>>> GetRentals()
+    public async Task<ActionResult<IEnumerable<RentalCreateDto>>> GetRentals()
     {
       var rentals = await _rentalService.GetAllRentalsAsync();
-      var rentalsDtos = _mapper.Map<List<RentalCreateDto>>(rentals);
+      var rentalsDtos = _mapper.Map<IEnumerable<RentalCreateDto>>(rentals);
 
       return Ok(rentalsDtos);
     }

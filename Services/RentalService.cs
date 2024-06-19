@@ -76,7 +76,7 @@ namespace CarRentalPlatform.Services
 
         if (fee != rental.Fee)
         {
-          throw new Exception($"The current amount should be{fee}");
+          throw new Exception($"The current amount should be {fee}");
 
         }
 
@@ -123,7 +123,7 @@ namespace CarRentalPlatform.Services
 
       if (fee != rental.Fee)
       {
-        throw new Exception($"The current amount should be{fee}");
+        throw new Exception($"The current amount should be {fee}");
 
       }
 

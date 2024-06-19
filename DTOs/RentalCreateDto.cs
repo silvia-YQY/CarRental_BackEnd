@@ -25,6 +25,10 @@ namespace CarRentalPlatform.DTOs
     public required decimal Fee { get; set; }
     public Status Status { get; set; }
 
+    public string? CarMake { get; set; }
+    public string? CarModel { get; set; }
+    public string? UserName { get; set; }
+
     // public required CarDto Car { get; set; }
     // public required UserDto User { get; set; }
   }
