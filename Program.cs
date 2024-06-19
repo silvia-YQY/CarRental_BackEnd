@@ -12,6 +12,8 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var isDevelopment = builder.Environment.IsDevelopment();
+
 // 添加 CORS 服务并配置策略
 builder.Services.AddCors(options =>
 {
@@ -33,12 +35,20 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 // Add services to the container.
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-// Add services to the container.
-builder.Services.AddControllers();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<CarRentalContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+   {
 
+       if (isDevelopment)
+       {
+           options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+       }
+       else
+       {
+           options.UseSqlServer(connectionString);
+       }
+   }
+);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -72,9 +82,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // 添加服务到容器
-builder.Services.AddControllers();
-
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtKey))
@@ -93,15 +102,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
-            ValidAudience = jwtIssuer,
+            ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
+
+// Add authorization
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+});
+
+
+
 
 // Register services
 builder.Services.AddScoped<ICarService, CarService>();
 builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IUserService, UserService>();
+
 
 
 var app = builder.Build();
@@ -134,13 +154,14 @@ app.UseHttpsRedirection();
 // 使用 CORS 中间件
 app.UseCors();
 
-app.UseAuthentication();  // Add this line to enable authentication
-app.UseAuthorization();
-
 app.MapControllers();
 
 app.UseStaticFiles();
 app.UseRouting();
+
+app.UseAuthentication();  // 启用授权
+app.UseAuthorization(); // 启用身份验证
+
 
 app.Run();
 

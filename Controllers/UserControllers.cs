@@ -2,8 +2,7 @@ using AutoMapper;
 using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
-
-
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -50,6 +49,7 @@ namespace CarRentalPlatform.Controllers
       return Ok(userDto);
     }
 
+    [Authorize(Policy = "AdminPolicy")]
     [HttpPost]
     public async Task<ActionResult<User>> PostUser(User user)
     {
@@ -59,6 +59,7 @@ namespace CarRentalPlatform.Controllers
       return CreatedAtAction(nameof(GetUser), new { id = user.Id }, createdUserDto);
     }
 
+    [Authorize(Policy = "AdminPolicy")]
     [HttpPut("{id}")]
     public async Task<IActionResult> PutUser(int id, User user)
     {
@@ -72,6 +73,7 @@ namespace CarRentalPlatform.Controllers
       return NoContent();
     }
 
+    [Authorize(Policy = "AdminPolicy")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {

@@ -28,4 +28,10 @@ namespace CarRentalPlatform.DTOs
     // public required UserDto User { get; set; }
   }
 
+  public class RentalStatusUpdateDto
+  {
+    [Required(ErrorMessage = "Status is required")]
+    public Status Status { get; set; }
+  }
+
 }

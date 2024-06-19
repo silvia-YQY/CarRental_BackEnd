@@ -2,14 +2,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
+using BCrypt.Net;
 
 using CarRentalPlatform.Models;
 using CarRentalPlatform.DTOs;
-using BCrypt.Net;
 
 namespace CarRentalPlatform.Controllers
 {
@@ -19,11 +22,15 @@ namespace CarRentalPlatform.Controllers
   {
     private readonly CarRentalContext _context;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthController> _logger; // 添加 ILogger 字段
 
-    public AuthController(CarRentalContext context, IConfiguration configuration)
+
+    public AuthController(CarRentalContext context, IConfiguration configuration, ILogger<AuthController> logger)
     {
       _context = context;
       _configuration = configuration;
+      _logger = logger;
+
     }
 
     [HttpPost("register")]
@@ -43,7 +50,7 @@ namespace CarRentalPlatform.Controllers
       _context.Users.Add(user);
       await _context.SaveChangesAsync();
 
-      return Ok(new { message = "User registered successfully" });
+      return Ok(new { message = $"{(userRegisterDto.isAdmin ? "Admintration" : "User")}registered successfully" });
     }
 
     [HttpPost("login")]
@@ -54,64 +61,45 @@ namespace CarRentalPlatform.Controllers
 
       if (user == null)
       {
-        return Unauthorized("Invalid email or password111.");
+        return Unauthorized("Invalid email or password.");
       }
 
       if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
       {
-        return Unauthorized("Invalid email or password222.");
+        return Unauthorized("Invalid email or password.");
       }
 
-      var tokenHandler = new JwtSecurityTokenHandler();
-      var jwtKey = _configuration["Jwt:Key"];
-      if (jwtKey == null)
-      {
-        throw new InvalidOperationException("JWT key configuration 'Jwt:Key' is missing or null.");
-      }
-      var key = Encoding.UTF8.GetBytes(jwtKey);
-      var tokenDescriptor = new SecurityTokenDescriptor
-      {
-        Subject = new ClaimsIdentity(new Claim[]
-          {
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Email, user.Email),
-            // 如果有其他需要在令牌中存储的信息，可以继续添加
-          }),
-        Expires = DateTime.UtcNow.AddDays(1), // 设置过期时间
-        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-      };
+      var tokenString = GenerateJwtToken(user);
 
-      var token = tokenHandler.CreateToken(tokenDescriptor);
-      var tokenString = tokenHandler.WriteToken(token);
       return Ok(new { Message = "Login successful", Token = tokenString });
     }
+
     private string GenerateJwtToken(User user)
     {
-      var claims = new[]
-      {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-      // Ensure the key exists in configuration and handle null case
       var jwtKey = _configuration["Jwt:Key"];
-      if (jwtKey == null)
+      var jwtIssuer = _configuration["Jwt:Issuer"];
+      var jwtAudience = _configuration["Jwt:Audience"];
+      _logger.LogInformation("JWT Configuration - Issuer: {Issuer}, Audience: {Audience}, Key: {Key}", jwtIssuer, jwtAudience, jwtKey);
+      if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
       {
-        throw new InvalidOperationException("JWT key configuration 'Jwt:Key' is missing or null.");
+        throw new InvalidOperationException("JWT configuration values cannot be null or empty.");
       }
 
-      // Convert the key to bytes
-      var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
+      var claims = new[]
+      {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.isAdmin ? "Admin" : "User")
+            };
 
-      // Create SymmetricSecurityKey using the key bytes
-      var key = new SymmetricSecurityKey(keyBytes);
+      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
       var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
       var token = new JwtSecurityToken(
-          issuer: _configuration["Jwt:Issuer"],
-          audience: _configuration["Jwt:Issuer"],
+          issuer: jwtIssuer,
+          audience: jwtAudience,
           claims: claims,
-          expires: DateTime.Now.AddMinutes(30),
+          expires: DateTime.UtcNow.AddDays(1),
           signingCredentials: creds);
 
       return new JwtSecurityTokenHandler().WriteToken(token);

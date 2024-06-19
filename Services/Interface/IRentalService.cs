@@ -9,7 +9,10 @@ namespace CarRentalPlatform.Services
     Task<IEnumerable<Rental>> GetAllRentalsAsync();
     Task<Rental> GetRentalByIdAsync(int id);
     Task<Rental?> CreateRentalAsync(Rental Rental);
-    Task UpdateRentalAsync(Rental Rental);
+    Task<Rental?> UpdateRentalAsync(Rental Rental);
+    Task<Rental?> UpdateRentalStatusAsync(Rental Rental);
     Task<bool> DeleteRentalAsync(int id);
+
+
   }
 }

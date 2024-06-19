@@ -2,6 +2,7 @@ using AutoMapper;
 using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarRentalPlatform.Controllers
@@ -45,6 +46,7 @@ namespace CarRentalPlatform.Controllers
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<Car>> PostCar(Car car)
     {
       var createdCar = await _carService.CreateCarAsync(car);
@@ -54,6 +56,7 @@ namespace CarRentalPlatform.Controllers
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> PutCar(int id, Car car)
     {
       if (id != car.Id)
@@ -66,6 +69,7 @@ namespace CarRentalPlatform.Controllers
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> DeleteCar(int id)
     {
       await _carService.DeleteCarAsync(id);

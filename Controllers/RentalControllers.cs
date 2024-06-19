@@ -4,6 +4,7 @@ using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore; // 引用 DbUpdateException
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace CarRentalPlatform.Controllers
@@ -60,7 +61,6 @@ namespace CarRentalPlatform.Controllers
         // Map RentalCreateDto to Rental
         var rental = _mapper.Map<Rental>(rentalDto);
 
-
         var createdRental = await _rentalService.CreateRentalAsync(rental);
 
         var createdRentalDto = _mapper.Map<RentalCreateDto>(createdRental);
@@ -72,14 +72,14 @@ namespace CarRentalPlatform.Controllers
       catch (DbUpdateException ex)
       {
         // 捕获数据库更新异常
-        _logger.LogError(ex, "Failed to create rental");
-        return StatusCode(StatusCodes.Status500InternalServerError, "Failed to create rental");
+        _logger.LogError("DbUpdateException" + ex);
+        return StatusCode(StatusCodes.Status500InternalServerError, "Failed to create rental" + ex);
       }
       catch (Exception ex)
       {
         // 捕获其他异常
-        _logger.LogError(ex, "An unexpected error occurred");
-        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred");
+        _logger.LogError("An unexpected error occurred" + ex);
+        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred" + ex);
       }
     }
 
@@ -110,7 +110,6 @@ namespace CarRentalPlatform.Controllers
         // Use AutoMapper to map rentalDto properties to existingRental
         _mapper.Map(rentalDto, existingRental);
 
-
         await _rentalService.UpdateRentalAsync(existingRental);
 
         var updatedRentalDto = _mapper.Map<RentalCreateDto>(rentalDto);
@@ -120,13 +119,13 @@ namespace CarRentalPlatform.Controllers
       catch (DbUpdateException ex)
       {
         // Handle database update exception
-        _logger.LogError(ex, "Failed to update rental");
+        _logger.LogError(ex, "Failed to update rental" + ex);
         return StatusCode(StatusCodes.Status500InternalServerError, "Failed to update rental" + ex);
       }
       catch (Exception ex)
       {
         // Handle other exceptions
-        _logger.LogError(ex, "An unexpected error occurred");
+        _logger.LogError(ex, "An unexpected error occurred" + ex);
         return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred" + ex);
       }
 
@@ -148,6 +147,40 @@ namespace CarRentalPlatform.Controllers
         return BadRequest("Id mismatch");
 
 
+      }
+    }
+
+    [Authorize(Policy = "AdminPolicy")]
+    [HttpPut("status/{id}")]
+    public async Task<IActionResult> UpdateRentalStatus(int id, [FromBody] RentalStatusUpdateDto statusUpdateDto)
+    {
+      try
+      {
+        // 查找现有的Rental
+        var rental = await _rentalService.GetRentalByIdAsync(id);
+        if (rental == null)
+        {
+          _logger.LogError($"Rental with id {id} not found");
+          return NotFound($"Rental with id {id} not found");
+        }
+
+        // 更新状态
+        rental.Status = statusUpdateDto.Status;
+
+        // 保存更改
+        await _rentalService.UpdateRentalStatusAsync(rental);
+
+        return NoContent();
+      }
+      catch (DbUpdateException ex)
+      {
+        _logger.LogError(ex, "Failed to update rental status");
+        return StatusCode(StatusCodes.Status500InternalServerError, "Failed to update rental status");
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "An unexpected error occurred");
+        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred");
       }
     }
 

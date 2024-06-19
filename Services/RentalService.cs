@@ -1,6 +1,7 @@
 // Services/RentalService.cs
 using CarRentalPlatform.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CarRentalPlatform.Services
 {
@@ -40,42 +41,94 @@ namespace CarRentalPlatform.Services
     {
       using (var transaction = _context.Database.BeginTransaction())
       {
-        try
+
+        // 查找现有的Car和User
+        var car = await _context.Cars.FindAsync(rental.CarId);
+        var user = await _context.Users.FindAsync(rental.UserId);
+
+        if (car == null || user == null)
         {
-          // 查找现有的Car和User
-          var car = await _context.Cars.FindAsync(rental.CarId);
-          var user = await _context.Users.FindAsync(rental.UserId);
-
-          if (car == null || user == null)
-          {
-            throw new KeyNotFoundException($"Car or User not found");
-          }
-
-          _context.Rentals.Add(rental);
-          await _context.SaveChangesAsync();
-          Console.WriteLine($"CreateRentalAsync==={rental.Id}");
-
-          transaction.Commit(); // 提交事务
-          return rental;
-
+          throw new KeyNotFoundException($"Car or User not found");
         }
 
-        catch (Exception ex)
+        if (!car.Available_Now)
         {
           transaction.Rollback(); // 回滚事务
-          throw new Exception("Failed to create rental", ex);
+          throw new Exception("Car not available now");
         }
+
+        // 检查当前车辆在给定时间段内是否有重叠的租赁记录
+        var overlappingRental = await _context.Rentals
+            .Where(r => r.CarId == rental.CarId &&
+                        ((rental.StartDate >= r.StartDate && rental.StartDate <= r.EndDate) ||
+                         (rental.EndDate >= r.StartDate && rental.EndDate <= r.EndDate) ||
+                         (rental.StartDate <= r.StartDate && rental.EndDate >= r.EndDate)))
+            .FirstOrDefaultAsync();
+
+
+        if (overlappingRental != null)
+        {
+          throw new Exception("The current vehicle is occupied at the current time");
+        }
+
+        // 费用计算（示例）
+        var fee = CalculateRentalFee(rental, car);
+
+        if (fee != rental.Fee)
+        {
+          throw new Exception($"The current amount should be{fee}");
+
+        }
+
+
+        _context.Rentals.Add(rental);
+        await _context.SaveChangesAsync();
+
+        transaction.Commit(); // 提交事务
+        return rental;
 
       }
     }
 
-    public async Task UpdateRentalAsync(Rental rental)
+    public async Task<Rental?> UpdateRentalAsync(Rental rental)
     {
 
       // _context.Entry(rental).State = EntityState.Modified;
       // Update existingRental using DbContext Update method
       // _context.Update(rental);
+      // 检查当前车辆在给定时间段内是否有重叠的租赁记录
+      var overlappingRental = await _context.Rentals
+          .Where(r => r.CarId == rental.CarId &&
+                      ((rental.StartDate >= r.StartDate && rental.StartDate <= r.EndDate) ||
+                       (rental.EndDate >= r.StartDate && rental.EndDate <= r.EndDate) ||
+                       (rental.StartDate <= r.StartDate && rental.EndDate >= r.EndDate)))
+          .FirstOrDefaultAsync();
+
+
+      if (overlappingRental != null)
+      {
+        throw new Exception("The current vehicle is occupied at the current time");
+      }
+
       await _context.SaveChangesAsync();
+      return rental;
+
+    }
+
+    public async Task<Rental?> UpdateRentalStatusAsync(Rental rental)
+    {
+
+
+      await _context.SaveChangesAsync();
+      return rental;
+
+    }
+
+    private decimal CalculateRentalFee(Rental rental, Car car)
+    {
+      var dailyRate = car.Price_Per_Day;
+      var totalDays = (rental.EndDate - rental.StartDate).Days;
+      return dailyRate * totalDays;
     }
 
     public async Task<bool> DeleteRentalAsync(int id)
@@ -93,7 +146,8 @@ namespace CarRentalPlatform.Services
         return false;
       }
 
-
     }
   }
+
 }
+
