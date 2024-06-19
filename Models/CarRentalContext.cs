@@ -16,23 +16,31 @@ namespace CarRentalPlatform.Models
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-      modelBuilder.Entity<Car>().ToTable("cars");
-      modelBuilder.Entity<Rental>().ToTable("rentals");
-      modelBuilder.Entity<User>().ToTable("users");
-
-      modelBuilder.Entity<Rental>()
-          .HasOne(r => r.Car)         // 一个 Rental 拥有一个 Car
-          .WithMany()                 // 一个 Car 可能被多个 Rental 引用
-          .HasForeignKey(r => r.Car_Id);  // Rental 表中的 Car_Id 外键
-
-      modelBuilder.Entity<Rental>()
-          .HasOne(r => r.User)        // 一个 Rental 拥有一个 User
-          .WithMany()                 // 一个 User 可能拥有多个 Rental
-          .HasForeignKey(r => r.User_Id); // Rental 表中的 User_Id 外键
-
       base.OnModelCreating(modelBuilder);
-    }
 
+      modelBuilder.Entity<Rental>(entity =>
+      {
+        entity.HasKey(e => e.Id);
+
+        entity.Property(e => e.StartDate).IsRequired();
+        entity.Property(e => e.EndDate).IsRequired();
+        entity.Property(e => e.Fee).IsRequired();
+        entity.Property(e => e.Status).IsRequired()
+                                      .IsRequired()
+                                      .HasConversion<int>(); // 添加枚举到整数的转换
+
+
+        entity.HasOne(e => e.Car)
+                .WithMany(c => c.Rentals)
+                .HasForeignKey(e => e.CarId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+        entity.HasOne(e => e.User)
+                .WithMany(u => u.Rentals)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+      });
+    }
 
   }
 

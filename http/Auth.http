@@ -2,16 +2,9 @@
 
 
 
-POST {{CarRentalPlatform_HostAddress}}/api/Auth/register
-Content-Type: application/json
+GET  {{CarRentalPlatform_HostAddress}}/api/Users/all
 Accept-Language: en-US,en;q=0.5
 
-{
-  "username": "ooo",
-  "email": "441@qq.com",
-  "password": "111",
-  "isAdmin": true
-}
 
 ###
 

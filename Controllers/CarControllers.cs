@@ -1,9 +1,6 @@
 using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
 
 namespace CarRentalPlatform.Controllers
 
@@ -12,69 +9,59 @@ namespace CarRentalPlatform.Controllers
   [ApiController]
   public class CarsController : ControllerBase
   {
-    private readonly CarRentalContext _context;
+    private readonly ICarService _carService;
 
-    public CarsController(CarRentalContext context)
+    public CarsController(ICarService carService)
     {
-      _context = context;
+      _carService = carService;
     }
 
     [HttpGet("all")]
-    public ActionResult<IEnumerable<Car>> GetCars()
+    public async Task<ActionResult<IEnumerable<Car>>> GetCars()
     {
-      return _context.Cars.ToList();
+      var cars = await _carService.GetAllCarsAsync();
+      return Ok(cars);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Car> GetCar(int id)
+    public async Task<ActionResult<Car>> GetCar(int id)
     {
-      var car = _context.Cars.Find(id);
+      var car = await _carService.GetCarByIdAsync(id);
 
       if (car == null)
       {
         return NotFound();
       }
 
-      return car;
+      return Ok(car);
     }
 
     [HttpPost]
-    public ActionResult<Car> PostCar(Car car)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<Car>> PostCar(Car car)
     {
-      _context.Cars.Add(car);
-      _context.SaveChanges();
-
-      return CreatedAtAction(nameof(GetCar), new { id = car.Id }, car);
+      var createdCar = await _carService.CreateCarAsync(car);
+      Console.WriteLine($"PostCar==={createdCar.Id}");
+      return CreatedAtAction(nameof(GetCar), new { id = createdCar.Id }, createdCar);
     }
 
     [HttpPut("{id}")]
-    public IActionResult PutCar(int id, Car car)
+    public async Task<IActionResult> PutCar(int id, Car car)
     {
-      Console.WriteLine("id=>", id);
-      Console.WriteLine("car id=>", car.Id);
       if (id != car.Id)
       {
         return BadRequest();
       }
 
-      _context.Entry(car).State = EntityState.Modified;
-      _context.SaveChanges();
-
+      await _carService.UpdateCarAsync(car);
       return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteCar(int id)
+    public async Task<IActionResult> DeleteCar(int id)
     {
-      var car = _context.Cars.Find(id);
-      if (car == null)
-      {
-        return NotFound();
-      }
-
-      _context.Cars.Remove(car);
-      _context.SaveChanges();
-
+      await _carService.DeleteCarAsync(id);
       return NoContent();
     }
 

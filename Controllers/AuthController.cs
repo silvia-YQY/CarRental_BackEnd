@@ -64,6 +64,10 @@ namespace CarRentalPlatform.Controllers
 
       var tokenHandler = new JwtSecurityTokenHandler();
       var jwtKey = _configuration["Jwt:Key"];
+      if (jwtKey == null)
+      {
+        throw new InvalidOperationException("JWT key configuration 'Jwt:Key' is missing or null.");
+      }
       var key = Encoding.UTF8.GetBytes(jwtKey);
       var tokenDescriptor = new SecurityTokenDescriptor
       {
@@ -89,7 +93,18 @@ namespace CarRentalPlatform.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+      // Ensure the key exists in configuration and handle null case
+      var jwtKey = _configuration["Jwt:Key"];
+      if (jwtKey == null)
+      {
+        throw new InvalidOperationException("JWT key configuration 'Jwt:Key' is missing or null.");
+      }
+
+      // Convert the key to bytes
+      var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
+
+      // Create SymmetricSecurityKey using the key bytes
+      var key = new SymmetricSecurityKey(keyBytes);
       var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
       var token = new JwtSecurityToken(

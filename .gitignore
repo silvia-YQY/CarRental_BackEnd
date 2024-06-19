@@ -1,6 +1,7 @@
 # .NET 编译输出目录
 bin/
 obj/
+publish/
 
 # Visual Studio 生成的用户特定文件
 .vscode/
@@ -74,3 +75,5 @@ $RECYCLE.BIN/
 # Rider
 .idea/
 *.sln.iml
+
+.fake

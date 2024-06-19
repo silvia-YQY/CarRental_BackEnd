@@ -1,9 +1,11 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore; // 引用 DbUpdateException
+
 
 namespace CarRentalPlatform.Controllers
 
@@ -12,69 +14,86 @@ namespace CarRentalPlatform.Controllers
   [ApiController]
   public class RentalsController : ControllerBase
   {
-    private readonly CarRentalContext _context;
+    private readonly IRentalService _rentalService;
+    private readonly ILogger<RentalsController> _logger; // 添加 ILogger 字段
 
-    public RentalsController(CarRentalContext context)
+    public RentalsController(IRentalService rentalService, ILogger<RentalsController> logger)
     {
-      _context = context;
+      _rentalService = rentalService;
+      _logger = logger;
     }
 
     [HttpGet("all")]
-    public ActionResult<IEnumerable<Rental>> GetRentals()
+    public async Task<ActionResult<IEnumerable<Rental>>> GetRentals()
     {
-      return _context.Rentals.Include(r => r.Car)   // 包含关联的车辆信息
-                         .Include(r => r.User)  // 包含关联的用户信息
-                         .ToList();
+      var rentals = await _rentalService.GetAllRentalsAsync();
+      return Ok(rentals);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Rental> GetRental(int id)
+    public async Task<ActionResult<Rental>> GetRental(int id)
     {
-      var rental = _context.Rentals.Find(id);
+      var rental = await _rentalService.GetRentalByIdAsync(id);
 
       if (rental == null)
       {
         return NotFound();
       }
 
-      return rental;
+      return Ok(rental);
     }
 
     [HttpPost]
-    public ActionResult<Rental> PostRental(Rental rental)
+    public async Task<ActionResult<Rental>> PostRental(RentalCreateDto rentalDto)
     {
-      _context.Rentals.Add(rental);
-      _context.SaveChanges();
+      try
+      {
 
-      return CreatedAtAction(nameof(GetRental), new { id = rental.Id }, rental);
+
+        var createdRental = await _rentalService.CreateRentalAsync(rentalDto);
+
+        var options = new JsonSerializerOptions
+        {
+          ReferenceHandler = ReferenceHandler.Preserve,
+        };
+
+        var json = JsonSerializer.Serialize(createdRental, options);
+
+
+        return Content(json, "application/json");
+      }
+      catch (DbUpdateException ex)
+      {
+        // 捕获数据库更新异常
+        _logger.LogError(ex, "Failed to create rental");
+        return StatusCode(StatusCodes.Status500InternalServerError, "Failed to create rental");
+      }
+      catch (Exception ex)
+      {
+        // 捕获其他异常
+        _logger.LogError(ex, "An unexpected error occurred");
+        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred");
+      }
     }
 
     [HttpPut("{id}")]
-    public IActionResult PutRental(int id, Rental rental)
+    public async Task<IActionResult> PutRental(int id, RentalCreateDto rentalDto)
     {
-      if (id != rental.Id)
+      if (id != rentalDto.Id)
       {
         return BadRequest();
       }
 
-      _context.Entry(rental).State = EntityState.Modified;
-      _context.SaveChanges();
-
+      await _rentalService.UpdateRentalAsync(rentalDto);
       return NoContent();
+
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteRental(int id)
+    public async Task<IActionResult> DeleteRental(int id)
     {
-      var rental = _context.Rentals.Find(id);
-      if (rental == null)
-      {
-        return NotFound();
-      }
 
-      _context.Rentals.Remove(rental);
-      _context.SaveChanges();
-
+      await _rentalService.DeleteRentalAsync(id);
       return NoContent();
     }
 

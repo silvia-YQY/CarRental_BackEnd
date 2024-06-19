@@ -1,14 +1,8 @@
 using CarRentalPlatform.Models;
 using CarRentalPlatform.Services;
-using CarRentalPlatform.DTOs;
 
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Linq;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace CarRentalPlatform.Controllers
@@ -18,9 +12,9 @@ namespace CarRentalPlatform.Controllers
   [ApiController]
   public class UsersController : ControllerBase
   {
-    private readonly CarRentalContext _context;
+    private readonly IUserService _context;
 
-    public UsersController(CarRentalContext context)
+    public UsersController(IUserService context)
     {
       _context = context;
     }
@@ -30,30 +24,28 @@ namespace CarRentalPlatform.Controllers
     {
       // .Select(u => new User { Id = u.Id, Username = u.Username, Email = u.Email, isAdmin = u.isAdmin })  // controll the paramer
       //.AsNoTracking()  // not track result
-      var users = await _context.Users.AsNoTracking().ToListAsync();
+      var users = await _context.GetAllUsersAsync();
       return Ok(users);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<User>> GetUser(int id)
     {
-      var user = await _context.Users.FindAsync(id);
+      var user = await _context.GetUserByIdAsync(id);
 
       if (user == null)
       {
         return NotFound();
       }
 
-      return user;
+      return Ok(user);
     }
 
     [HttpPost]
     public async Task<ActionResult<User>> PostUser(User user)
     {
-      _context.Users.Add(user);
-      await _context.SaveChangesAsync();
-
-      return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+      var createdUser = await _context.CreateUserAsync(user);
+      return CreatedAtAction(nameof(GetUser), new { id = user.Id }, createdUser);
     }
 
     [HttpPut("{id}")]
@@ -64,23 +56,7 @@ namespace CarRentalPlatform.Controllers
         return BadRequest();
       }
 
-      _context.Entry(user).State = EntityState.Modified;
-
-      try
-      {
-        await _context.SaveChangesAsync();
-      }
-      catch (DbUpdateConcurrencyException)
-      {
-        if (!_context.Users.Any(e => e.Id == id))
-        {
-          return NotFound();
-        }
-        else
-        {
-          throw;
-        }
-      }
+      await _context.UpdateUserAsync(user);
 
       return NoContent();
     }
@@ -88,15 +64,7 @@ namespace CarRentalPlatform.Controllers
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-      var user = await _context.Users.FindAsync(id);
-      if (user == null)
-      {
-        return NotFound();
-      }
-
-      _context.Users.Remove(user);
-      await _context.SaveChangesAsync();
-
+      await _context.DeleteUserAsync(id);
       return NoContent();
     }
 

@@ -1,45 +1,57 @@
+// Services/CarService.cs
+using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
-namespace CarRentalPlatform.Services;
-
-public static class CarService
+namespace CarRentalPlatform.Services
 {
-  static List<Car> Cars { get; }
-  static int nextId = 3;
-  static CarService()
+  public class CarService : ICarService
   {
-    Cars = new List<Car>
-        {
-            new Car { Id = 1, Make = "Classic Italian", Model = "aaa", Price_Per_Day = 60, Mileage = 1000, Year = 1999, Url = "http://xxx", Available_Now = false  },
-            new Car { Id = 2, Make = "Veggie",Model = "uuu", Price_Per_Day = 70, Mileage = 2000, Year = 2009, Url = "http://xxx", Available_Now = true }
-        };
-  }
+    private readonly CarRentalContext _context;
 
-  public static List<Car> GetAll() => Cars;
+    public CarService(CarRentalContext context)
+    {
+      _context = context;
+    }
 
-  public static Car? Get(int id) => Cars.FirstOrDefault(p => p.Id == id);
+    public async Task<IEnumerable<Car>> GetAllCarsAsync()
+    {
+      return await _context.Cars.ToListAsync();
+    }
 
-  public static void Add(Car Car)
-  {
-    Car.Id = nextId++;
-    Cars.Add(Car);
-  }
+    public async Task<Car> GetCarByIdAsync(int id)
+    {
+      var car = await _context.Cars.FindAsync(id);
+      if (car == null)
+      {
+        throw new KeyNotFoundException($"Car with ID {id} not found.");
+      }
+      return car;
+    }
 
-  public static void Delete(int id)
-  {
-    var Car = Get(id);
-    if (Car is null)
-      return;
+    public async Task<Car> CreateCarAsync(Car car)
+    {
 
-    Cars.Remove(Car);
-  }
+      _context.Cars.Add(car);
+      await _context.SaveChangesAsync();
+      return car;
+    }
 
-  public static void Update(Car Car)
-  {
-    var index = Cars.FindIndex(p => p.Id == Car.Id);
-    if (index == -1)
-      return;
+    public async Task UpdateCarAsync(Car car)
+    {
+      _context.Entry(car).State = EntityState.Modified;
+      await _context.SaveChangesAsync();
+    }
 
-    Cars[index] = Car;
+    public async Task DeleteCarAsync(int id)
+    {
+      var car = await _context.Cars.FindAsync(id);
+      if (car != null)
+      {
+        _context.Cars.Remove(car);
+        await _context.SaveChangesAsync();
+      }
+    }
   }
 }

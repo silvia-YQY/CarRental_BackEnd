@@ -1,22 +1,36 @@
 using CarRentalPlatform.Models;
-using CarRentalPlatform.DTOs;
+using CarRentalPlatform.Services;
 
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-using Pomelo.EntityFrameworkCore.MySql.Storage;
-
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 添加 CORS 服务并配置策略
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
+// Add services to the container.
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+});
+
+
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -83,17 +97,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Register services
+builder.Services.AddScoped<ICarService, CarService>();
+builder.Services.AddScoped<IRentalService, RentalService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Car Rental API v1");
-        // Other Swagger UI configurations
+        // c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
     });
 
 }
@@ -111,6 +130,8 @@ else
 
 app.UseHttpsRedirection();
 
+// 使用 CORS 中间件
+app.UseCors();
 
 app.UseAuthentication();  // Add this line to enable authentication
 app.UseAuthorization();
@@ -121,3 +142,5 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.Run();
+
+// dotnet publish -c Release -o ./publish
