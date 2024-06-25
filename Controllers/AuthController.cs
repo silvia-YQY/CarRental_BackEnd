@@ -2,17 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Configuration;
 
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using BCrypt.Net;
-
 using CarRentalPlatform.Models;
 using CarRentalPlatform.DTOs;
+using AutoMapper;
 
 namespace CarRentalPlatform.Controllers
 {
@@ -22,14 +18,17 @@ namespace CarRentalPlatform.Controllers
   {
     private readonly CarRentalContext _context;
     private readonly IConfiguration _configuration;
+
+    private readonly IMapper _mapper;
+
     private readonly ILogger<AuthController> _logger; // 添加 ILogger 字段
 
-
-    public AuthController(CarRentalContext context, IConfiguration configuration, ILogger<AuthController> logger)
+    public AuthController(CarRentalContext context, IConfiguration configuration, ILogger<AuthController> logger, IMapper mapper)
     {
       _context = context;
       _configuration = configuration;
       _logger = logger;
+      _mapper = mapper;
 
     }
 
@@ -71,7 +70,9 @@ namespace CarRentalPlatform.Controllers
 
       var tokenString = GenerateJwtToken(user);
 
-      return Ok(new { Message = "Login successful", Token = tokenString });
+      var userResponseDto = _mapper.Map<UserResponseDto>(user);
+
+      return Ok(new { Message = "Login successful", Token = tokenString, user = userResponseDto });
     }
 
     private string GenerateJwtToken(User user)
