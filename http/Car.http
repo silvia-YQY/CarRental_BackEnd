@@ -10,7 +10,7 @@ Accept: application/json
 
 ###
 
-GET {{CarRentalPlatform_HostAddress}}/api/Cars/1
+GET {{CarRentalPlatform_HostAddress}}/api/Cars/2
 Accept: application/json
 
 ###

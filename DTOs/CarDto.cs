@@ -20,6 +20,8 @@ namespace CarRentalPlatform.DTOs
     [Required(ErrorMessage = "Price_Per_Day is required")]
     [Range(1, 10000, ErrorMessage = "Year must between 1 to 10000")]
     public decimal Price_Per_Day { get; set; }
+
+    public List<RentalCreateDto> Rentals { get; set; } = new List<RentalCreateDto>();
   }
 
 }

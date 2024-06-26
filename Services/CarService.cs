@@ -37,7 +37,9 @@ namespace CarRentalPlatform.Services
 
     public async Task<Car?> GetCarByIdAsync(int id)
     {
-      var car = await _context.Cars.FindAsync(id);
+      var car = await _context.Cars
+                            .Include(c => c.Rentals) // 加载相关的 Rentals
+                            .FirstOrDefaultAsync(c => c.Id == id);
       return car;
     }
 
