@@ -1,4 +1,5 @@
 // Services/CarService.cs
+using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,22 @@ namespace CarRentalPlatform.Services
     public async Task<List<Car>> GetAllCarsAsync()
     {
       return await _context.Cars.ToListAsync();
+    }
+
+    public async Task<PagedResult<Car>> GetPagedCarsAsync(int pageNumber, int pageSize)
+    {
+      var query = _context.Cars.AsQueryable();
+
+      var totalCount = await query.CountAsync();
+      var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+
+      return new PagedResult<Car>
+      {
+        Items = items,
+        TotalCount = totalCount,
+        PageNumber = pageNumber,
+        PageSize = pageSize
+      };
     }
 
     public async Task<Car?> GetCarByIdAsync(int id)

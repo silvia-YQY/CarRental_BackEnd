@@ -1,4 +1,5 @@
 // Services/RentalService.cs
+using CarRentalPlatform.DTOs;
 using CarRentalPlatform.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -23,6 +24,26 @@ namespace CarRentalPlatform.Services
                           .Include(r => r.Car)   // 包含关联的车辆信息
                           .Include(r => r.User)  // 包含关联的用户信息
                           .ToListAsync();
+    }
+
+    public async Task<PagedResult<Rental>> GetPagedRentalAsync(int pageNumber, int pageSize)
+    {
+      var query = _context.Rentals.AsQueryable();
+
+      var totalCount = await query.CountAsync();
+      var items = await query.Skip((pageNumber - 1) * pageSize)
+                              .Take(pageSize)
+                              .Include(r => r.Car)
+                              .Include(r => r.User)
+                              .ToListAsync();
+
+      return new PagedResult<Rental>
+      {
+        Items = items,
+        TotalCount = totalCount,
+        PageNumber = pageNumber,
+        PageSize = pageSize
+      };
     }
 
     public async Task<Rental> GetRentalByIdAsync(int id)

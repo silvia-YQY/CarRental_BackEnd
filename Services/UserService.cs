@@ -19,6 +19,21 @@ namespace CarRentalPlatform.Services
       return await _context.Users.ToListAsync();
     }
 
+    public async Task<PagedResult<User>> GetPagedUserAsync(int pageNumber, int pageSize)
+    {
+      var query = _context.Users.AsQueryable();
+
+      var totalCount = await query.CountAsync();
+      var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+
+      return new PagedResult<User>
+      {
+        Items = items,
+        TotalCount = totalCount,
+        PageNumber = pageNumber,
+        PageSize = pageSize
+      };
+    }
     public async Task<User> GetUserByIdAsync(int id)
     {
       var user = await _context.Users.FindAsync(id);

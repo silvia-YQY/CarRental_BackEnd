@@ -38,6 +38,32 @@ namespace CarRentalPlatform.Controllers
       return Ok(rentalsDtos);
     }
 
+    [HttpGet("allByPage")]
+    public async Task<ActionResult<PagedResult<RentalCreateDto>>> GetRentals([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    {
+      try
+      {
+        var rentals = await _rentalService.GetPagedRentalAsync(pageNumber, pageSize);
+        var RentalCreateDtos = _mapper.Map<List<RentalCreateDto>>(rentals.Items);
+
+        var pagedResult = new PagedResult<RentalCreateDto>
+        {
+          Items = RentalCreateDtos,
+          TotalCount = rentals.TotalCount,
+          PageNumber = pageNumber,
+          PageSize = pageSize
+        };
+
+        return Ok(pagedResult);
+      }
+      catch (Exception ex)
+      {
+        // 处理异常并记录日志
+        _logger.LogError(ex, "An unexpected error occurred while getting all cars.");
+        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+      }
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<Rental>> GetRental(int id)
     {

@@ -17,11 +17,14 @@ namespace CarRentalPlatform.Controllers
 
     private readonly IMapper _mapper;
 
+    private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService context, IMapper mapper)
+    public UsersController(IUserService context, IMapper mapper, ILogger<UsersController> logger)
     {
       _context = context;
       _mapper = mapper;
+      _logger = logger;
+
     }
 
     [HttpGet("all")]
@@ -48,6 +51,33 @@ namespace CarRentalPlatform.Controllers
 
       return Ok(userDto);
     }
+
+    [HttpGet("allByPage")]
+    public async Task<ActionResult<PagedResult<UserDto>>> GetUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    {
+      try
+      {
+        var users = await _context.GetPagedUserAsync(pageNumber, pageSize);
+        var UserDtos = _mapper.Map<List<UserDto>>(users.Items);
+
+        var pagedResult = new PagedResult<UserDto>
+        {
+          Items = UserDtos,
+          TotalCount = users.TotalCount,
+          PageNumber = pageNumber,
+          PageSize = pageSize
+        };
+
+        return Ok(pagedResult);
+      }
+      catch (Exception ex)
+      {
+        // 处理异常并记录日志
+        _logger.LogError(ex, "An unexpected error occurred while getting all cars.");
+        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+      }
+    }
+
 
     [Authorize(Policy = "AdminPolicy")]
     [HttpPost]

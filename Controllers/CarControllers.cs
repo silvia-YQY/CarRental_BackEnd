@@ -34,15 +34,33 @@ namespace CarRentalPlatform.Controllers
         var cars = await _carService.GetAllCarsAsync();
         var carDtos = _mapper.Map<List<CarDto>>(cars);
 
-        // var jsonSettings = new JsonSerializerSettings
-        // {
-        //   ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-        // };
-
-        // var jsonResult = Json(carDtos, jsonSettings);
-        // return Ok(jsonResult);
-
         return Ok(carDtos);
+      }
+      catch (Exception ex)
+      {
+        // 处理异常并记录日志
+        _logger.LogError(ex, "An unexpected error occurred while getting all cars.");
+        return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+      }
+    }
+
+    [HttpGet("allByPage")]
+    public async Task<ActionResult<PagedResult<CarDto>>> GetCars([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    {
+      try
+      {
+        var cars = await _carService.GetPagedCarsAsync(pageNumber, pageSize);
+        var carDtos = _mapper.Map<List<CarDto>>(cars.Items);
+
+        var pagedResult = new PagedResult<CarDto>
+        {
+          Items = carDtos,
+          TotalCount = cars.TotalCount,
+          PageNumber = pageNumber,
+          PageSize = pageSize
+        };
+
+        return Ok(pagedResult);
       }
       catch (Exception ex)
       {

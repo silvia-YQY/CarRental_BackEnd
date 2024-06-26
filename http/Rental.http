@@ -5,6 +5,10 @@ Accept: application/json
 
 ###
 
+GET {{CarRentalPlatform_HostAddress}}/api/Rentals/allByPage?pageNumber=1&pageSize=3
+Accept: application/json
+
+
 GET {{CarRentalPlatform_HostAddress}}/api/Rentals/6
 Accept: application/json
 
@@ -25,18 +29,22 @@ Accept-Language: en-US,en;q=0.5
 
 ###
 
-PUT  {{CarRentalPlatform_HostAddress}}/api/Rentals/2
+PUT  {{CarRentalPlatform_HostAddress}}/api/Rentals/9
 Content-Type: application/json
 Accept-Language: en-US,en;q=0.5
 
+
 {
-  "id": 2,
-  "carId": 1,
-  "userId": 1,
-  "startDate": "2024-06-12T03:12:54.401Z",
-  "endDate": "2024-06-18T03:12:54.401Z",
-  "fee": 360,
-  "status": 3
+    "Id": 9,
+    "CarId": 3,
+    "UserId": 6,
+    "StartDate": "2024-06-25T12:00:00",
+    "EndDate": "2024-06-27T12:00:00",
+    "Fee": 120,
+    "CarMake": "toyota",
+    "CarModel": "99",
+    "UserName": "guest",
+    "Status": 1
 }
 
 ###

@@ -7,6 +7,7 @@ namespace CarRentalPlatform.Services
   public interface IRentalService
   {
     Task<IEnumerable<Rental>> GetAllRentalsAsync();
+    Task<PagedResult<Rental>> GetPagedRentalAsync(int pageNumber, int pageSize);
     Task<Rental> GetRentalByIdAsync(int id);
     Task<Rental?> CreateRentalAsync(Rental Rental);
     Task<Rental?> UpdateRentalAsync(Rental Rental);
